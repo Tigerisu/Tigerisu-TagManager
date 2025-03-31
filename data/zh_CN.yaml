@@ -1,0 +1,346 @@
+- name: 女性角色
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 主角数量
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      1girl: 1个女性
+      2girls: 2个女性
+      3girls: 3个女性
+      4girls: 4个女性
+      5girls: 5个女性
+      6+girls: 大于等于6个女性
+      multiple girls: 多个女性（数量随机）
+  - name: 二创
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      alternate species: 改变种族
+      animalization: 动物化
+      foodification: 食物化
+      furrification: 福瑞化
+      genderswap: 性转
+      genderswap \(ftm\): 性转（女转男）
+      humanization: 拟人化（人形）
+      mechanization: 机械化
+      monsterification: 人外化
+      objectification: 物品化
+      personification: 拟人化（非人形）
+  - name: 角色预设
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      female pervert: 痴女
+      giantess: 巨大女性
+      minigirl: 超小女性
+      tomboy: 伪郎(假小子)
+  - name: 年龄
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      child: 小孩
+      loli: 萝莉（性爱）
+  - name: 身材
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      chibi: Q版
+      curvy: 丰满
+      fat: 胖
+      muffin top: 微胖
+      obese: 更胖
+      petite: 娇小
+      skinny: 瘦
+  - name: 人外身材
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      emaciated: 真·骨感
+  - name: 头发
+    color: rgba(255, 123, 2, 0.4)
+    tags: {}
+  - name: 胸部
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      huge nipples: 长乳头
+      nipples: 乳头
+      puffy nipples: 大乳头
+  - name: 下体
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      anus: 肛门
+- name: 男性角色
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 主角数量
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      1boy: 1个男性
+      2boys: 2个男性
+      3boys: 3个男性
+      4boys: 4个男性
+      5boys: 5个男性
+      6+boys: 大于等于6个男性
+      multiple boys: 多个男性（数量随机）
+  - name: 二创
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      genderswap: 性转
+      genderswap \(mtf\): 性转（男转女）
+  - name: 角色预设
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      futanari: 扶她
+      giant male: 巨大男性
+      miniboy: 超小男性
+      otoko no ko: 伪娘
+      pervert: 变态
+  - name: 年龄
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      child: 小孩
+  - name: 身材
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      chibi: Q版
+      fat: 胖
+      obese: 更胖
+      petite: 娇小
+      plump: 微胖
+      skinny: 瘦
+  - name: 人外身材
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      emaciated: 真·骨感
+  - name: 头发
+    color: rgba(255, 123, 2, 0.4)
+    tags: {}
+  - name: 胸部
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      bare pectorals: 露胸
+      huge pectorals: 巨胸
+      large pectorals: 大胸
+      pectoral cleavage: 胸肌中缝
+      pectorals: 胸部
+  - name: 下体
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      anus: 肛门
+      penis: 阴茎
+      testicles: 阴囊
+- name: 其他角色/无角色
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 主角
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      1other: 1个人形
+      2others: 2个人形
+      3others: 3个人形
+      4others: 4个人形
+      5others: 5个人形
+      6+others: 大于等于6个人形
+      multiple others: 多个人形（数量随机）
+      no humans: 没有人形角色
+      solo: 单一角色
+      solo focus: 单一主角（其他模糊）
+  - name: 生物
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      blob: 有眼睛嘴巴的一坨生物
+      creature: 不巨大可怕的幻想生物
+      kaiju: 日式怪兽
+      monster: 巨大可怕的幻想生物
+  - name: 大小
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      giant: 巨大的
+      giant monster: 巨大怪兽
+      mini person: 超小人类
+      oversized animal: 巨大动物
+      undersized animal: 超小动物
+  - name: 身材
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      emaciated: 真·骨感
+- name: 服饰
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 内衣
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      bra: 胸罩
+      lingerie: 女式内衣
+      underwear: 内衣
+  - name: 露肤设计
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      sidepec: 侧面露胸
+  - name: 材质
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      translucent: 半透明
+  - name: 状态
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      see-through clothes: 半透明衣物
+      wet: 湿的
+  - name: 情趣服装
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      naked coat: 裸体大衣
+- name: 艺术风格
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 性爱
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      cross-section: 独立阴道断面图
+- name: 场景
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 单人
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      breast conscious: 关注自己的胸部
+      solo: 单人
+      weight conscious: 觉得自己太胖了
+  - name: 互动
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      asymmetrical docking: 两女胸部抵在一起（大小不同）
+      breast awe: 被巨乳吸引
+      breast contest: 乳相扑
+      breast envy: 嫉妒大胸
+      height difference: 身高差
+      height envy: 嫉妒身高
+      pectoral docking: 两男胸部抵在一起
+      penis awe: 被阴茎吸引
+      size difference: 体型差
+      symmetrical docking: 两女胸部抵在一起（大小相近）
+  - name: 走光
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      anus peek: 肛门走光
+      areola slip: 乳晕滑出衣物
+      breat slip: 乳房滑出衣物
+      covered nipples: 激凸
+      nipple slip: 乳头滑出衣物
+  - name: 性爱
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      afterglow: 温存
+      come hither: 色诱
+      cum in pussy: 中出/中出后
+      deep penetration: 完全插入
+      ejaculating while penetrated: 被插入时射精
+      ejaculation: 射精
+      exhibitionism: 露出癖
+      fellatio: 用嘴服侍
+      female ejaculation: 潮喷
+      female orgasm: 女性高潮
+      flashing: 快闪露出
+      happy sex: 做爱
+      internal cumshot: 中出（透视）
+      irrumatio: 插嘴
+      molestation: 痴汉行为
+      naked school attendance: 全裸登校
+      nudist: 裸族
+      oral: 口交
+      orgasm: 高潮
+      public indecency: 公然猥亵
+      sex battle: Battle Fuck
+      x-ray: 阴道断面
+  - name: '?'
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      bed invitation: 邀请上床
+      x-ray film: X光
+- name: 环境
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 户外
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      nude beach: 裸体沙滩
+  - name: 配角
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      fat man: 胖男人
+- name: 镜头
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 焦点
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      male focus: 男性主角
+      solo focus: 单一主角（其他模糊）
+- name: 动作
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 手臂
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      cuddling: 依偎
+      hug: 拥抱
+  - name: 手部动作
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      beckoning: 招手
+      belly grab: 捏起小肚子
+      breast padding: 捧胸
+      outstretched arm: 伸出手臂
+      outstretched hand: 伸出手
+  - name: 遮挡
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      covering nipples: 遮住乳头
+  - name: 拍照
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      selfie: 自拍
+- name: 表情
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 心情
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      envy: 嫉妒
+      forced: 被迫的
+      happy: 开心
+      jealous: 吃醋
+  - name: 笑
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      naughty face: 调皮脸
+      seductive smile: 诱惑的笑
+- name: 物品
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 大小
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      giant: 巨大的
+      huge weapon: 巨大武器
+      oversized object: 巨大物品
+  - name: 内脏
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      cervix: 子宫颈
+      intestines: 肠子
+  - name: 性爱
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      pussy juice: 爱液
+- name: 组合
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 场景
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      2girls,small breasts,large breasts,breast envy,asymmetrical docking,: 两女胸部抵在一起，嫉妒巨乳
+      breast conscious,breast padding,<expression>: 对自己的胸围不满
+      weight conscious,belly grab,<expression>: 觉得自己太胖了
+- name: 形容词
+  color: rgba(255, 123, 2, 0.4)
+  groups:
+  - name: 材质
+    color: rgba(255, 123, 2, 0.4)
+    tags:
+      transparent: 透明的

@@ -1,0 +1,10 @@
+default_yaml: data/zh_CN.yaml
+backup_dir: backup
+color_list:
+  purple: rgba(140, 82, 255, 0.4)
+  pink: rgba(255, 132, 208, 0.4)
+  blue: rgba(24, 158, 243, 0.4)
+  yellow: rgba(255, 169, 2, 0.4)
+  green: rgba(0, 163, 80, 0.4)
+  crimson: rgba(254, 49, 203, 0.4)
+  brown: rgba(255, 123, 2, 0.4)
