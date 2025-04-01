@@ -1,12 +1,11 @@
 import gradio as gr
 
 from utils.utils import *
-from modules import add_tag, manage_color
+from modules import add_tag, manage_color        
 
 with gr.Blocks() as home:
     # Global States
     groups = gr.State([])
-    message = gr.State('')
 
     # # Header
     # Load .yaml file
@@ -115,9 +114,9 @@ with gr.Blocks() as home:
     # # Tabs for function
     # Currently implemented:
     # * Add Tag
-    add_tag.create(groups, message)
+    add_tag.create(groups)
     # * WIP: Color Management
-    # manage_color.create(groups, message)
+    manage_color.create(groups)
     
 
     # # Footage
@@ -126,8 +125,7 @@ with gr.Blocks() as home:
     with gr.Row():
         backup_button = gr.Button("🗄️ Backup")
         save_button = gr.Button("💾 Save", variant='primary')
-    message_textbox = gr.Textbox(label="Message", value=lambda message: message, inputs=message)
 
     # ## Event
-    backup_button.click(backup_yaml, inputs=[file_input], outputs=message)
-    save_button.click(write_yaml, inputs=[groups, file_input], outputs=message)
+    backup_button.click(backup_yaml, inputs=[file_input])
+    save_button.click(write_yaml, inputs=[groups, file_input])
