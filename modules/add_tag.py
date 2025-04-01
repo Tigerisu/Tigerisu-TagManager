@@ -12,19 +12,6 @@ new_entry = {
     'new_subgroup_color': color_list['brown']
 }
 
-def entry2str(entry):
-    text = entry['text']
-    desc = entry['desc']
-    position = ''
-    for group in entry['position']:
-        position += f"|- {group}\n"
-        for subgroup in entry['position'][group]:
-            position += f"    |- {subgroup}\n"
-    new_group_color = entry['new_group_color']
-    new_subgroup_color = entry['new_subgroup_color']
-    return f"ADD TAG \"{text}: {desc}\" TO\n{position}with\nNew group color: {new_group_color}\nNew subgroup color: {new_subgroup_color}"
-
-
 def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_color):
     msg = Message(duration=10)
     for group in groups:
@@ -113,7 +100,7 @@ def add_group(groups, entry):
 
 def create(groups):
     # ## UI
-    with gr.Tab("ADD"):
+    with gr.Tab("Add Tag"):
         entry = gr.State(new_entry)
         with gr.Row():
             with gr.Column(min_width=160):
@@ -174,12 +161,12 @@ def create(groups):
         with gr.Column(variant='panel'):
             current_group_name = gr.State('')
             @gr.render(inputs=[groups, new_group_name, current_group_name])
-            def select_group(groups, new_group_name, cur):
+            def select_group(groups, new_group_name, cur_group_name):
                 gr.Markdown("Groups")
                 choices = OrderedSet(group['name'] for group in groups)
                 if new_group_name:
                     choices.add(new_group_name)
-                value = OrderedSet([cur])
+                value = OrderedSet([cur_group_name])
                 group_checkboxgroup = gr.CheckboxGroup(
                     container=False,
                     interactive=True,
@@ -187,14 +174,14 @@ def create(groups):
                     value=list(value & choices)
                 )
                 group_checkboxgroup.input(
-                    lambda group_checkboxgroup, current_group_name:
-                    group_checkboxgroup[-1] if group_checkboxgroup else current_group_name,
-                    inputs=[group_checkboxgroup, current_group_name],
+                    lambda group_checkboxgroup:
+                    group_checkboxgroup[-1] if group_checkboxgroup else cur_group_name,
+                    inputs=group_checkboxgroup,
                     outputs=current_group_name
                 )
 
             @gr.render(inputs=[groups, new_subgroup_name, current_group_name, entry])
-            def select_subgroup(groups, new_subgroup_name, cur_group_name, entry_dict):
+            def select_subgroup(groups, new_subgroup_name, cur_group_name, entry_value):
                 gr.Markdown(f"Subgroups of {cur_group_name}:")
                 choices = OrderedSet()
                 for group in groups:
@@ -204,44 +191,43 @@ def create(groups):
                     choices.add(new_subgroup_name)
                 value = OrderedSet()
                 if cur_group_name:
-                    value.update(entry_dict['position'].get(cur_group_name, []))
+                    value.update(entry_value['position'].get(cur_group_name, []))
                 subgroup_checkboxgroup = gr.CheckboxGroup(
                     container=False,
                     interactive=True,
                     choices=choices,
                     value=list(value & choices)
                 )
-                def subgroup_checkboxgroup_change(entry, current_group_name, subgroup_checkboxgroup):
-                    entry['position'].update({current_group_name: subgroup_checkboxgroup})
+                def subgroup_checkboxgroup_change(subgroup_checkboxgroup):
+                    entry_value['position'].update({cur_group_name: subgroup_checkboxgroup})
                     if not subgroup_checkboxgroup:
-                        del entry['position'][current_group_name]
-                    return entry
+                        del entry_value['position'][cur_group_name]
+                    return entry_value
                 subgroup_checkboxgroup.change(
                     subgroup_checkboxgroup_change,
-                    inputs=[entry, current_group_name, subgroup_checkboxgroup],
+                    inputs=subgroup_checkboxgroup,
                     outputs=entry
                 )
             
             @gr.render(inputs=entry)
-            def cancel_selection(entry_dict):
+            def cancel_selection(entry_value):
                 gr.Markdown("Selected:")
-                for group_name in entry_dict['position']:
-                    choices = OrderedSet()
-                    choices.update([subgroup_name for subgroup_name in entry_dict['position'][group_name]])
+                for group_name in entry_value['position']:
+                    choices = OrderedSet([subgroup_name for subgroup_name in entry_value['position'][group_name]])
                     selected_checkboxgroup = gr.CheckboxGroup(
                         label=group_name,
                         interactive=True,
                         choices=choices,
                         value=list(choices)
                     )
-                    def selected_checkgroup_change(entry, selected_checkboxgroup):
-                        entry['position'].update({group_name: selected_checkboxgroup})
+                    def selected_checkgroup_change(selected_checkboxgroup, group_name=group_name):
+                        entry_value['position'].update({group_name: selected_checkboxgroup})
                         if not selected_checkboxgroup:
-                            del entry['position'][group_name]
-                        return entry
+                            del entry_value['position'][group_name]
+                        return entry_value
                     selected_checkboxgroup.change(
                         selected_checkgroup_change,
-                        inputs=[entry, selected_checkboxgroup],
+                        inputs=selected_checkboxgroup,
                         outputs=entry
                     )
                 clear_selection = gr.Button(
@@ -249,16 +235,15 @@ def create(groups):
                     size='sm'
                 )
                 clear_selection.click(
-                    lambda entry: entry.update({'position': {}}) or entry,
-                    inputs=entry,
+                    lambda: entry_value.update({'position': {}}) or entry_value,
                     outputs=entry
                 )
 
-        # summary = gr.Textbox(
-        #     label="Summary",
-        #     value=lambda x: entry2str(x),
-        #     inputs=entry
-        # )
+        summary = gr.Textbox(
+            label="Summary",
+            value=data2yaml,
+            inputs=entry
+        )
         
         with gr.Row():
             add_group_button = gr.Button("🗂️ Add Group")

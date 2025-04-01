@@ -1,7 +1,7 @@
 import gradio as gr
 
 from utils.utils import *
-from modules import add_tag, manage_color        
+from modules import add_tag, edit_color        
 
 with gr.Blocks() as home:
     # Global States
@@ -89,9 +89,9 @@ with gr.Blocks() as home:
                         value=list(value & choices)
                         )
                     subgroup_checkboxgroup.input(
-                        lambda subgroup_checkboxgroup, current_subgroup_name:
-                        subgroup_checkboxgroup[-1] if subgroup_checkboxgroup else current_subgroup_name,
-                        inputs=[subgroup_checkboxgroup, current_subgroup_name],
+                        lambda subgroup_checkboxgroup:
+                        subgroup_checkboxgroup[-1] if subgroup_checkboxgroup else cur_subgroup_name,
+                        inputs=subgroup_checkboxgroup,
                         outputs=current_subgroup_name
                     )
                     show_subgroup_color = gr.ColorPicker(
@@ -116,7 +116,7 @@ with gr.Blocks() as home:
     # * Add Tag
     add_tag.create(groups)
     # * WIP: Color Management
-    manage_color.create(groups)
+    edit_color.create(groups)
     
 
     # # Footage

@@ -2,6 +2,7 @@ import shutil
 import os
 import yaml
 from datetime import datetime
+import re
 import gradio as gr
 
 # message
@@ -71,7 +72,7 @@ default_yaml = config['default_yaml']
 backup_dir = config['backup_dir']
 color_list = config['color_list']
 
-# general purpose functions
+# file I/O
 def read_yaml(filepath=default_yaml):
     if not os.path.exists(filepath): return []
     with open(filepath, 'r', encoding='utf-8') as file:
@@ -100,28 +101,26 @@ def backup_yaml(filepath=default_yaml, backup_dir=backup_dir):
 
     Message(f"Successfully backed up to: {backup_path}")()
 
-# turn yaml file storing tags into a string
-def yaml2str(groups):
-    output = ""
-    for group in groups:
-        group_name = group['name']
-        group_color = group['color']
-        output += f"{group_name} | {group_color}\n"
-        subgroups = group['groups']
-        for subgroup in subgroups:
-            subgroup_name = subgroup['name']
-            subgroup_color = subgroup['color']
-            output += f'  |-- {subgroup_name} | {subgroup_color}\n'
-            tags = subgroup['tags']
-            for tag in tags:
-                output += f'    |-- {tag}: {tags[tag]}\n'
-    return output
+# take in a list or dict
+# return in yaml style string
+def data2yaml(entry):
+    return yaml.dump(entry, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
-# # input: ["group_name1 | subgroup_name2", "group_name1 | subgroup_name2"]
-# # output: {"group_name1": ["subgroup_name1", "subgroup_name2"]}
-# def group_subgroup_names_to_dict(group_subgroup_names):
-#     position_dict = {}
-#     for group_subgroup_name in group_subgroup_names:
-#         group_name, subgroup_name = group_subgroup_name.split(' | ')
-#         position_dict.setdefault(group_name, []).append(subgroup_name)
-#     return position_dict
+# take in a string of color in hex or rgba format
+# return the color a rgba format with each channel rounded to int and A set to 1
+def normalize_color(color: str) -> str:
+    if color.startswith("#"):
+        color = color.lstrip("#")
+        if len(color) == 6:
+            r, g, b = int(color[:2], 16), int(color[2:4], 16), int(color[4:6], 16)
+        else:
+            raise ValueError("Invalid hex color format")
+    elif color.startswith("rgba"):
+        match = re.match(r"rgba\(([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*[\d.]+\)", color)
+        if not match:
+            raise ValueError("Invalid rgba color format")
+        r, g, b = map(float, match.groups())
+    else:
+        raise ValueError("Unsupported color format")
+
+    return f"rgba({round(r)}, {round(g)}, {round(b)}, 1)"
