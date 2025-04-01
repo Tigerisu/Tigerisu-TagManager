@@ -2,6 +2,29 @@ import shutil
 import os
 import yaml
 from datetime import datetime
+import gradio as gr
+
+# message
+class Message(str):
+    def __new__(cls, content='', level='info', duration=5):
+        return super().__new__(cls, content)
+
+    def __init__(self, content='', level='info', duration=5):
+        self.level = level
+        self.duration = duration
+
+    def __add__(self, other):
+        return Message(super().__add__(other), self.level, self.duration)
+
+    def __iadd__(self, other):
+        return self.__add__(other)
+
+    def __call__(self):
+        match self.level:
+            case 'error': gr.Error(self, self.duration)
+            case 'info': gr.Info(self, self.duration)
+            case 'warning': gr.Warning(self, self.duration)
+            case _: raise ValueError(f"Invalid Notification Level: {self.level}")
 
 # ordered set
 class OrderedSet:
@@ -58,7 +81,7 @@ def read_yaml(filepath=default_yaml):
 def write_yaml(data, filepath=default_yaml):
     with open(filepath, 'w', encoding='utf-8') as file:
         yaml.dump(data, file, default_flow_style=False, allow_unicode=True, sort_keys=False)
-    return f"Successfully saved to: {filepath}"
+    Message(f"Successfully saved to: {filepath}")()
 
 def backup_yaml(filepath=default_yaml, backup_dir=backup_dir):
     if not os.path.exists(backup_dir):
@@ -75,7 +98,7 @@ def backup_yaml(filepath=default_yaml, backup_dir=backup_dir):
 
     shutil.copy(filepath, backup_path)
 
-    return f"Successfully backed up to: {backup_path}"
+    Message(f"Successfully backed up to: {backup_path}")()
 
 # turn yaml file storing tags into a string
 def yaml2str(groups):

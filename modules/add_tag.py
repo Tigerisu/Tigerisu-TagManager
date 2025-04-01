@@ -12,44 +12,50 @@ new_entry = {
     'new_subgroup_color': color_list['brown']
 }
 
-def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_color, message):
-    if not position_dict:
-        message = "Select groups and subgroups."
-        return groups, message
+def entry2str(entry):
+    text = entry['text']
+    desc = entry['desc']
+    position = ''
+    for group in entry['position']:
+        position += f"|- {group}\n"
+        for subgroup in entry['position'][group]:
+            position += f"    |- {subgroup}\n"
+    new_group_color = entry['new_group_color']
+    new_subgroup_color = entry['new_subgroup_color']
+    return f"ADD TAG \"{text}: {desc}\" TO\n{position}with\nNew group color: {new_group_color}\nNew subgroup color: {new_subgroup_color}"
 
+
+def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_color):
+    msg = Message(duration=10)
     for group in groups:
         if group['name'] in position_dict:
             # group exists
-            message += f"Group \"{group['name']}\" exists.\n"
             subgroups_selected = position_dict[group['name']]
             for subgroup in group['groups']:
                 if subgroup['name'] in subgroups_selected:
                     # subgroup exists
-                    message += f"Subgroup \"{subgroup['name']}\" exists.\n"
                     # create/update tag
                     if text:
                         subgroup['tags'][text] = desc
-                        message += f"Successfully added tag \"{text} ({desc})\".\n"
+                        msg += f"Successfully added tag \"{text} ({desc})\".\n"
                     subgroups_selected.remove(subgroup['name'])
             if subgroups_selected:
                 # new subgroup
                 subgroup_name = subgroups_selected[0]
-                message += f"Subgroup \"{subgroup_name}\" does not exist.\n"
                 # create subgroup
                 group['groups'].append({
                     'name': subgroup_name,
                     'color': new_subgroup_color,
                     'tags': {text: desc} if text else {}
                 })
-                message += f"Successfully  added subgroup \"{subgroup_name}\".\n"
+                msg += f"Successfully  added subgroup \"{subgroup_name}\".\n"
                 if text:
-                    message += f"Successfully added tag \"{text} ({desc})\".\n"
+                    msg += f"Successfully added tag \"{text} ({desc})\".\n"
             del position_dict[group['name']]
     if position_dict:
         # new group
         group_name = next(iter(position_dict))
         subgroup_name = position_dict[group_name][0]
-        message += f"Group {group_name} does not exist.\n"
         # create group
         groups.append({
             'name': group_name,
@@ -60,14 +66,14 @@ def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_
                 'tags': {text: desc} if text else {}
             }]
         })
-        message += f"Successfully  added group \"{group_name}\".\n"
-        message += f"Successfully  added subgroup \"{subgroup_name}\".\n"
+        msg += f"Successfully  added group \"{group_name}\".\n"
+        msg += f"Successfully  added subgroup \"{subgroup_name}\".\n"
         if text:
-            message += f"Successfully added tag \"{text} ({desc})\".\n"
-    return groups, message
+            msg += f"Successfully added tag \"{text} ({desc})\".\n"
+        msg()
+    return groups
 
 def add_tag(groups, entry):
-    message = "ADD TAG\n"
     text = entry['text']
     desc = entry['desc']
     position = entry['position']
@@ -75,27 +81,37 @@ def add_tag(groups, entry):
     new_subgroup_color = entry['new_subgroup_color']
 
     if not text:
-        message = "Text is empty."
-        return groups, text, desc, message
+        msg = Message("Text is empty.", 'warning')
+        msg()
+        return groups, text, desc
     
-    groups, message = exec_entry(groups, text, desc, position, new_group_color, new_subgroup_color, message)
+    if not position:
+        msg = Message("Select groups and subgroups.", 'warning')
+        msg()
+        return groups, text, desc
+    
+    groups = exec_entry(groups, text, desc, position, new_group_color, new_subgroup_color)
 
     text = ''
     desc = ''
-    return groups, text, desc, message
+    return groups, text, desc
 
 def add_group(groups, entry):
-    message = "ADD GROUP\n"
     position = entry['position']
     new_group_color = entry['new_group_color']
     new_subgroup_color = entry['new_subgroup_color']
+
+    if not position:
+        msg = Message("Select groups and subgroups.", 'warning')
+        msg()
+        return groups
     
-    groups, message = exec_entry(groups, None, None, position, new_group_color, new_subgroup_color, message)
+    groups = exec_entry(groups, None, None, position, new_group_color, new_subgroup_color)
 
-    return groups, message
+    return groups
 
 
-def create(groups, message):
+def create(groups):
     # ## UI
     with gr.Tab("ADD"):
         entry = gr.State(new_entry)
@@ -279,11 +295,11 @@ def create(groups, message):
         add_group_button.click(
             add_group,
             inputs=[groups, entry],
-            outputs=[groups, message]
+            outputs=groups
         )
 
         add_tag_button.click(
             add_tag,
             inputs=[groups, entry],
-            outputs=[groups, text, desc, message]
+            outputs=[groups, text, desc]
         )
