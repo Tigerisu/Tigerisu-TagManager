@@ -188,14 +188,14 @@ def create(groups):
                     )
                 with gr.Row():
                     apply_subgroup = gr.Button(
-                        value="Apply to Subroups",
+                        value="Apply to Subgroups",
                         variant='primary'
                     )
                     apply2groups_checkbox = gr.Checkbox(
                         label="Apply to all groups of selected subgroups."
                     )
 
-        with gr.Accordion(label="Summary", open=True):
+        with gr.Accordion(label="Summary", open=False):
             summary = gr.Textbox(
                 container=False,
                 value=data2yaml,
