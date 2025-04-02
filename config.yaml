@@ -1,5 +1,5 @@
 default_yaml: data/zh_CN.yaml
-backup_dir: backup
+backup_dir: data/backup
 color_list:
   purple: rgba(140, 82, 255, 0.4)
   pink: rgba(255, 132, 208, 0.4)
