@@ -1,5 +1,4 @@
 import gradio as gr
-
 from utils.utils import *
 from modules import add_tag, edit_color        
 
@@ -33,7 +32,7 @@ with gr.Blocks() as home:
     # # Data Preview
     # Dynamically render the working data
     # ## UI
-    with gr.Accordion(label="Preview"):
+    with gr.Accordion(label="Preview", open=False):
         with gr.Column(variant='panel'):
             current_group_name = gr.State('')
             @gr.render(inputs=[groups, current_group_name])
