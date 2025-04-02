@@ -1,11 +1,15 @@
 import shutil
 import os
+from typing import overload, Tuple
 import yaml
 from datetime import datetime
 import re
 import gradio as gr
 
-# message
+# Message
+# essentially a str which can be initialized with a level and duration
+# can be modified with + and += like a string
+# create a gradio pop-up message when called
 class Message(str):
     def __new__(cls, content='', level='info', duration=5):
         return super().__new__(cls, content)
@@ -27,7 +31,9 @@ class Message(str):
             case 'warning': gr.Warning(self, self.duration)
             case _: raise ValueError(f"Invalid Notification Level: {self.level}")
 
-# ordered set
+# Ordered set
+# Acts like a set without duplicate item
+# but does not mess up with item order
 class OrderedSet:
     def __init__(self, iterable=None):
         self._dict = {}  # Internal dictionary to maintain order and uniqueness
@@ -65,6 +71,32 @@ class OrderedSet:
         """String representation of the OrderedSet."""
         return f"OrderedSet({list(self._dict.keys())})"
 
+# Entry
+# A dict with an extra function 'assign'
+# which performs like dict.update() updating only one entry
+# using direct assignment for better efficiency
+# and returns the dict
+# Handy for lambda functions
+# Recursive: keeps all dict in MyDict a MyDict
+class MyDict(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Convert nested dicts into MyDict
+        for key, value in self.items():
+            if isinstance(value, dict) and not isinstance(value, MyDict):
+                self[key] = MyDict(value)
+
+    def __setitem__(self, key, value):
+        # Convert value into MyDict if it's a dict
+        if isinstance(value, dict) and not isinstance(value, MyDict):
+            value = MyDict(value)
+        super().__setitem__(key, value)
+
+    def assign(self, item: dict):
+        key, value = next(iter(item.items()))
+        self[key] = value
+        return self
+
 # init vaiables
 with open("config.yaml", 'r', encoding='utf-8') as config_file:
     config = yaml.safe_load(config_file)
@@ -73,18 +105,18 @@ backup_dir = config['backup_dir']
 color_list = config['color_list']
 
 # file I/O
-def read_yaml(filepath=default_yaml):
+def read_yaml(filepath: str=default_yaml):
     if not os.path.exists(filepath): return []
     with open(filepath, 'r', encoding='utf-8') as file:
         data = yaml.safe_load(file)
     return data
 
-def write_yaml(data, filepath=default_yaml):
+def write_yaml(data: dict, filepath: str=default_yaml):
     with open(filepath, 'w', encoding='utf-8') as file:
         yaml.dump(data, file, default_flow_style=False, allow_unicode=True, sort_keys=False)
     Message(f"Successfully saved to: {filepath}")()
 
-def backup_yaml(filepath=default_yaml, backup_dir=backup_dir):
+def backup_yaml(filepath: str=default_yaml, backup_dir: str=backup_dir):
     if not os.path.exists(backup_dir):
         os.makedirs(backup_dir)
 
@@ -103,7 +135,7 @@ def backup_yaml(filepath=default_yaml, backup_dir=backup_dir):
 
 # take in a list or dict
 # return in yaml style string
-def data2yaml(entry):
+def data2yaml(entry: dict):
     return yaml.dump(entry, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
 # take in a string of color in hex or rgba format

@@ -4,41 +4,100 @@ from utils.utils import *
 # # Tab: Color
 # Manage color preset and colors for groups and subgroups
 # ## Logic
-new_entry = {
+new_entry = MyDict({
     'color': color_list['brown'],
     'position': {}
-}
+})
 
-# def submit_entry(groups, entry):
-#     message = ""
-#     group_color = entry['group_color']
-#     subgroup_color = entry['subgroup_color']
-#     position = entry['position']
+@overload
+def exec_entry(
+    groups: dict,
+    color: str,
+    position_dict: dict,
+    apply2groups: bool,
+    apply2subgroups: bool,
+    apply2subgroups_all: bool
+) -> dict: ...
 
-#     if not position:
-#         message = "Select groups and subgroups for tag."
-#         return groups, message
+def exec_entry(groups, color, position_dict, apply2groups, apply2subgroups, apply2subgroups_all):
+    msg = Message(duration=5)
+    for group in groups:
+        if group['name'] in position_dict:
+            # found a selected group
+            # set color if apply color to groups
+            if apply2groups:
+                group['color'] = color
+                msg += f"Apply color to {group['name']}.\n"
+            if apply2subgroups_all:
+                # apply to all subgroups
+                # set color
+                for subgroup in group['groups']:
+                    subgroup['color'] = color
+                msg += f"Apply color to all subgroups of {group['name']}.\n"
+            elif apply2subgroups:
+                # apply to selected subgroups
+                subgroups_selected = position_dict[group['name']]
+                for subgroup in group['groups']:
+                    if subgroup['name'] in subgroups_selected:
+                        # found a selected subgroup
+                        # set color
+                        subgroup['color'] = color
+                        msg += f"Apply color to {group['name']} -> {subgroup['name']}.\n"
+    msg()
+    return groups
+
+@overload
+def apply2groups(
+    groups: dict,
+    entry: dict,
+    apply2subgroups_all: bool
+) -> dict: ...
+
+def apply2groups(groups, entry, apply2subgroups_all):
+    color = entry['color']
+    position = entry['position']
+
+    if not position:
+        msg = Message("Select groups.", 'warning')
+        msg()
+        return groups
     
-#     position_dict = group_subgroup_names_to_dict(position)
+    groups = exec_entry(groups, color, position, True, False, apply2subgroups_all)
+    return groups
 
-#     for group in groups:
-#         if group['name'] in position_dict:
-#             # group exists
-#             group['color'] = group_color
-#             message += f"Set group \"{group['name']}\" to color {group_color}.\n"
-#             subgroups_selected = position_dict[group['name']]
-#             for subgroup in group['groups']:
-#                 if subgroup['name'] in subgroups_selected:
-#                     # subgroup exists
-#                     subgroup['color'] = subgroup_color
-#                     message += f"Set subgroup \"{subgroup['name']}\" to color {subgroup_color}.\n"
-#     return groups, message
+@overload
+def apply2subgroups(
+    groups: dict,
+    entry: dict,
+    apply2groups: bool
+) -> dict: ...
+
+def apply2subgroups(groups, entry, apply2groups):
+    color = entry['color']
+    position = entry['position']
+
+    if not position:
+        msg = Message("Select groups.", 'warning')
+        msg()
+        return groups
+    
+    group = exec_entry(groups, color, position, apply2groups, True)
+    return groups
+
+@overload
+def create(groups: gr.State) -> None: ...
 
 def create(groups):
     # ## UI
     with gr.Tab("Edit Color"):
         entry = gr.State(new_entry)
         with gr.Column(variant='panel'):
+            @overload
+            def select_group(
+                groups: dict,
+                entry_value: dict
+            ) -> None: ...
+
             @gr.render(inputs=[groups, entry])
             def select_group(groups, entry_value):
                 gr.Markdown("Groups")
@@ -50,20 +109,24 @@ def create(groups):
                     choices=choices,
                     value=list(value & choices)
                 )
-                def update_entry_groups(entry, group_checkboxgroup):
-                    for group_name in group_checkboxgroup:
-                        entry['position'].setdefault(group_name, [])
-                    return entry
+                
                 group_checkboxgroup.change(
                     lambda group_checkboxgroup:
-                    entry_value.update({
+                    entry_value.assign({
                         'position': {
                             group_name: entry_value['position'].get(group_name, []) for group_name in group_checkboxgroup
                             }
-                        }) or entry_value,
+                        }),
                     inputs=group_checkboxgroup,
                     outputs=entry
                 )
+
+            @overload
+            def select_subgroup(
+                groups: dict,
+                entry_value: dict
+            ) -> None: ...
+
             @gr.render(inputs=[groups, entry])
             def select_subgroup(groups, entry_value):
                 for group in groups:
@@ -79,50 +142,70 @@ def create(groups):
                         )
                         subgroup_checkboxgroup.change(
                             lambda subgroup_checkboxgroup, group=group:
-                            entry_value['position'].update({group['name']: subgroup_checkboxgroup})
-                            or entry_value,
+                            entry_value['position'].assign({group['name']: subgroup_checkboxgroup}) and entry_value,
                             inputs=subgroup_checkboxgroup,
                             outputs=entry
                         )
+            clear_selection = gr.Button(
+                value="⚠️ Clear Selection",
+                size='sm'
+            )
+            clear_selection.click(
+                lambda entry: entry.assign({'position': {}}),
+                inputs=entry,
+                outputs=entry
+            )
 
         with gr.Row():
-            with gr.Column():
-                color_dropdown = gr.Dropdown(
-                    label='Color',
-                    interactive=True,
-                    choices=list(color_list) + ['🎨CUSTOM'],
-                    value='brown',
-                    min_width=80,
-                )
-                save_custom = gr.Checkbox(
-                    label="Save custom color",
-                    interactive=True,
-                    visible=False
-                )
-            color_picker = gr.ColorPicker(
-                label="Group Color",
-                interactive=True,
-                value=lambda entry: entry['color'],
-                inputs=entry,
-            )
-            with gr.Column():
-                apply2subgroups = gr.Checkbox(
-                    label="Apply to all subgroups of selected groups."
-                )
-                apply_group = gr.Button(
-                    value="Apply to Groups"
-                )
+            with gr.Column(variant='panel'):
+                gr.Markdown("Color")
+                with gr.Row():
+                    with gr.Column(min_width=100, scale=2):
+                        color_dropdown = gr.Dropdown(
+                            container=False,
+                            interactive=True,
+                            choices=list(color_list) + ['🎨CUSTOM'],
+                            value='brown'
+                        )
+                        save_custom = gr.Checkbox(visible=False)
+                        new_color_name = gr.Textbox(visible=False)
+                    color_picker = gr.ColorPicker(
+                        container=False,
+                        min_width=240,
+                        scale=3,
+                        interactive=True,
+                        value=lambda entry: entry['color'],
+                        inputs=entry
+                    )
+            with gr.Column(min_width=240):
+                with gr.Row():
+                    apply_group = gr.Button(
+                        value="Apply to Groups",
+                        variant='primary'
+                    )
+                    apply2subgroups_checkbox = gr.Checkbox(
+                        label="Apply to all subgroups of selected groups."
+                    )
+                with gr.Row():
+                    apply_subgroup = gr.Button(
+                        value="Apply to Subroups",
+                        variant='primary'
+                    )
+                    apply2groups_checkbox = gr.Checkbox(
+                        label="Apply to all groups of selected subgroups."
+                    )
 
-        summary = gr.Textbox(
-            label="Summary",
-            value=data2yaml,
-            inputs=entry
-        )
+        with gr.Accordion(label="Summary", open=True):
+            summary = gr.Textbox(
+                container=False,
+                value=data2yaml,
+                inputs=entry
+            )
 
         # ## Events
         color_dropdown.change(
             lambda entry, color_dropdown, color_picker: (
-                entry.update({'color': color_list.get(color_dropdown, normalize_color(color_picker))}) or entry,
+                entry.assign({'color': color_list.get(color_dropdown, normalize_color(color_picker))}),
                 gr.Checkbox(
                     label="Save custom color",
                     interactive=True,
@@ -135,8 +218,31 @@ def create(groups):
         )
 
         color_picker.input(
-            lambda entry, color_picker: 
-            (entry.update({'color': normalize_color(color_picker)}) or entry, '🎨CUSTOM'),
+            lambda entry, color_picker: (
+                entry.assign({'color': normalize_color(color_picker)}),
+                '🎨CUSTOM'
+            ),
             inputs=[entry, color_picker],
             outputs=[entry, color_dropdown]
+        )
+
+        save_custom.change(
+            lambda save_custom: gr.Textbox(
+                label="Name",
+                visible=save_custom,
+            ),
+            inputs=save_custom,
+            outputs=new_color_name
+        )
+
+        apply_group.click(
+            apply2groups,
+            inputs=[groups, entry, apply2subgroups_checkbox],
+            outputs=groups
+        )
+
+        apply_subgroup.click(
+            apply2subgroups,
+            inputs=[groups, entry, apply2groups_checkbox],
+            outputs=groups
         )

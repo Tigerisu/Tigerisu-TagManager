@@ -4,16 +4,26 @@ from utils.utils import *
 # # Tab: Add Tag
 # Add new tag to the selected group and subgroup
 # ## Utils
-new_entry = {
+new_entry = MyDict({
     'text': '',
     'desc': '',
     'position': {},
     'new_group_color': color_list['brown'],
     'new_subgroup_color': color_list['brown']
-}
+})
+
+@overload
+def exec_entry(
+    groups: dict,
+    text: str,
+    desc: str,
+    position_dict: dict,
+    new_group_color: str,
+    new_subgroup_color: str
+) -> dict: ...
 
 def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_color):
-    msg = Message(duration=10)
+    msg = Message(duration=5)
     for group in groups:
         if group['name'] in position_dict:
             # group exists
@@ -24,7 +34,7 @@ def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_
                     # create/update tag
                     if text:
                         subgroup['tags'][text] = desc
-                        msg += f"Successfully added tag \"{text} ({desc})\".\n"
+                        msg += f"Add tag \"{text} ({desc})\".\n"
                     subgroups_selected.remove(subgroup['name'])
             if subgroups_selected:
                 # new subgroup
@@ -35,9 +45,9 @@ def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_
                     'color': new_subgroup_color,
                     'tags': {text: desc} if text else {}
                 })
-                msg += f"Successfully  added subgroup \"{subgroup_name}\".\n"
+                msg += f"Add subgroup \"{subgroup_name}\".\n"
                 if text:
-                    msg += f"Successfully added tag \"{text} ({desc})\".\n"
+                    msg += f"Add tag \"{text} ({desc})\".\n"
             del position_dict[group['name']]
     if position_dict:
         # new group
@@ -53,12 +63,18 @@ def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_
                 'tags': {text: desc} if text else {}
             }]
         })
-        msg += f"Successfully  added group \"{group_name}\".\n"
-        msg += f"Successfully  added subgroup \"{subgroup_name}\".\n"
+        msg += f"Add group \"{group_name}\".\n"
+        msg += f"Add subgroup \"{subgroup_name}\".\n"
         if text:
-            msg += f"Successfully added tag \"{text} ({desc})\".\n"
-        msg()
+            msg += f"Add tag \"{text} ({desc})\".\n"
+    msg()
     return groups
+
+@overload
+def add_tag(
+    groups: dict,
+    entry: dict
+) -> Tuple[dict, str, str]: ...
 
 def add_tag(groups, entry):
     text = entry['text']
@@ -83,6 +99,12 @@ def add_tag(groups, entry):
     desc = ''
     return groups, text, desc
 
+@overload
+def add_group(
+    groups: dict,
+    entry: dict
+) -> dict: ...
+
 def add_group(groups, entry):
     position = entry['position']
     new_group_color = entry['new_group_color']
@@ -97,6 +119,8 @@ def add_group(groups, entry):
 
     return groups
 
+@overload
+def create(groups: gr.State) -> None: ...
 
 def create(groups):
     # ## UI
@@ -160,6 +184,13 @@ def create(groups):
 
         with gr.Column(variant='panel'):
             group_selected_names = gr.State([])
+            @overload
+            def select_group(
+                groups: dict,
+                new_group_name: str,
+                group_selected_names_value: list[str]
+            ) -> None: ...
+
             @gr.render(inputs=[groups, new_group_name, group_selected_names])
             def select_group(groups, new_group_name, group_selected_names_value):
                 gr.Markdown("Groups")
@@ -183,6 +214,15 @@ def create(groups):
                     outputs=group_selected_names
                 )
 
+            @overload
+            def select_subgroup(
+                groups: dict,
+                group_selected_names: list[str],
+                new_group_name: str,
+                new_subgroup_name: str,
+                entry_value: dict
+            ) -> None: ...
+
             @gr.render(inputs=[groups, group_selected_names, new_group_name, new_subgroup_name, entry])
             def select_subgroup(groups, group_selected_names, new_group_name, new_subgroup_name, entry_value):
                 def create_subgroup_checkboxgroup(group_name, subgroups):
@@ -199,10 +239,10 @@ def create(groups):
                     )
                     subgroup_checkboxgroup.change(
                         lambda subgroup_checkboxgroup, group_name=group_name: (
-                            entry_value['position'].update({group_name: subgroup_checkboxgroup})
+                            entry_value['position'].assign({group_name: subgroup_checkboxgroup})
                             if subgroup_checkboxgroup
-                            else (entry_value['position'].pop(group_name, None) and None)
-                        ) or entry_value,
+                            else entry_value['position'].pop(group_name, True)
+                        ) and entry_value,
                         inputs=subgroup_checkboxgroup,
                         outputs=entry
                     )
@@ -218,7 +258,7 @@ def create(groups):
             )
             clear_selection.click(
                 lambda entry: (
-                    entry.update({'position': {}}) or entry,
+                    entry.assign({'position': {}}),
                     []
                 ),
                 inputs=entry,
@@ -227,7 +267,7 @@ def create(groups):
 
         with gr.Accordion(label="Summary", open=False):
             summary = gr.Textbox(
-                label="Summary",
+                container=False,
                 value=data2yaml,
                 inputs=entry
             )
@@ -238,20 +278,20 @@ def create(groups):
 
         # ## Events
         text.input(
-            lambda entry, text: entry.update({'text': text}) or entry,
+            lambda entry, text: entry.assign({'text': text}),
             inputs=[entry, text],
             outputs=entry
         )
 
         desc.input(
-            lambda entry, desc: entry.update({'desc': desc}) or entry,
+            lambda entry, desc: entry.assign({'desc': desc}),
             inputs=[entry, desc],
             outputs=entry
         )
 
         new_group_color.input(
             lambda entry, color: (
-                entry.update({'new_group_color': color}) or entry,
+                entry.assign({'new_group_color': color}),
                 color
             ),
             inputs=[entry, new_group_color],
@@ -259,7 +299,7 @@ def create(groups):
         )
 
         new_subgroup_color.change(
-            lambda entry, color: entry.update({'new_subgroup_color': color}) or entry,
+            lambda entry, color: entry.assign({'new_subgroup_color': color}),
             inputs=[entry, new_subgroup_color],
             outputs=entry
         )
