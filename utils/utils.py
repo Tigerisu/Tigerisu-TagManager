@@ -1,10 +1,27 @@
 import shutil
 import os
-from typing import overload, Tuple
-import yaml
-from datetime import datetime
 import re
+import importlib.util
+from pathlib import Path
+from datetime import datetime
+from typing import overload, Tuple, List
+import yaml
 import gradio as gr
+
+# init vaiables from config
+class Config():
+    def __init__(self):
+        with open("config.yaml", 'r', encoding='utf-8') as config_file:
+            config = yaml.safe_load(config_file)
+            self.default_data = config['default_data']
+            self.backup_dir = config['backup_dir']
+            self.module_dir = config['module_dir']
+            self.custom_dir = config['custom_dir']
+            self.module_priority = config['module_priority']
+            self.module_ignore = config['module_ignore']
+            self.color_list = config['color_list']
+
+config = Config()
 
 # Message
 # essentially a str which can be initialized with a level and duration
@@ -97,26 +114,19 @@ class MyDict(dict):
         self[key] = value
         return self
 
-# init vaiables
-with open("config.yaml", 'r', encoding='utf-8') as config_file:
-    config = yaml.safe_load(config_file)
-default_yaml = config['default_yaml']
-backup_dir = config['backup_dir']
-color_list = config['color_list']
-
 # file I/O
-def read_yaml(filepath: str=default_yaml):
+def read_yaml(filepath: str=config.default_data):
     if not os.path.exists(filepath): return []
     with open(filepath, 'r', encoding='utf-8') as file:
         data = yaml.safe_load(file)
     return data
 
-def write_yaml(data: dict, filepath: str=default_yaml):
+def write_yaml(data: dict, filepath: str=config.default_data):
     with open(filepath, 'w', encoding='utf-8') as file:
         yaml.dump(data, file, default_flow_style=False, allow_unicode=True, sort_keys=False)
     Message(f"Successfully saved to: {filepath}")()
 
-def backup_yaml(filepath: str=default_yaml, backup_dir: str=backup_dir):
+def backup_yaml(filepath: str=config.default_data, backup_dir: str=config.backup_dir):
     if not os.path.exists(backup_dir):
         os.makedirs(backup_dir)
 
@@ -156,3 +166,42 @@ def normalize_color(color: str) -> str:
         raise ValueError("Unsupported color format")
 
     return f"rgba({round(r)}, {round(g)}, {round(b)}, 1)"
+
+def get_modules():
+    module_dir = Path(config.module_dir)
+    custom_dir = Path(config.custom_dir)
+    all_paths = list(module_dir.glob("*.py")) + list(custom_dir.glob("*.py"))
+
+    return [path.name for path in all_paths]
+
+@overload
+def create_modules(
+    data: gr.State
+) -> None: ...
+
+def create_modules(data):
+    module_dir = Path(config.module_dir)
+    custom_dir = Path(config.custom_dir)
+    all_paths = list(module_dir.glob("*.py")) + list(custom_dir.glob("*.py"))
+
+    priority_paths = [module_dir / file for file in config.module_priority]
+    remaining_paths = [
+        path for path in all_paths
+        if path.name not in config.module_priority
+        and path.name not in config.module_ignore
+    ]
+
+    module_paths = priority_paths + remaining_paths
+    for path in module_paths:
+        try:
+            spec = importlib.util.spec_from_file_location(path.stem, path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            if hasattr(module, "create"):
+                print(f"Calling {module}.create()")
+                module.create(data)
+            else:
+                print(f"{module} has no callable create()")
+        except Exception as e:
+            print(f"Failed to import {module}: {e}")

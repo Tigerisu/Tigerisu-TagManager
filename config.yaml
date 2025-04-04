@@ -1,5 +1,13 @@
-default_yaml: data/zh_CN.yaml
+default_data: data/zh_CN.yaml
 backup_dir: data/backup
+module_dir: modules
+custom_dir: custom_tabs
+module_priority:
+  - add_tag.py
+  - edit_color.py
+module_ignore:
+  - __init__.py
+  - homepage.py
 color_list:
   purple: rgba(140, 82, 255, 0.4)
   pink: rgba(255, 132, 208, 0.4)

@@ -7,9 +7,9 @@ from utils.utils import *
 def foo():
     return
 
-def create(groups, message):
+def create(groups):
     # ## UI
-    with gr.Tab("Color"):
+    with gr.Tab("Example"):
         text = gr.Textbox("Hello World")
 
     # ## Events

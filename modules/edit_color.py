@@ -5,7 +5,7 @@ from utils.utils import *
 # Manage color preset and colors for groups and subgroups
 # ## Logic
 new_entry = MyDict({
-    'color': color_list['brown'],
+    'color': config.color_list['brown'],
     'position': {}
 })
 
@@ -164,7 +164,7 @@ def create(groups):
                         color_dropdown = gr.Dropdown(
                             container=False,
                             interactive=True,
-                            choices=list(color_list) + ['🎨CUSTOM'],
+                            choices=list(config.color_list) + ['🎨CUSTOM'],
                             value='brown'
                         )
                         save_custom = gr.Checkbox(visible=False)
@@ -205,7 +205,7 @@ def create(groups):
         # ## Events
         color_dropdown.change(
             lambda entry, color_dropdown, color_picker: (
-                entry.assign({'color': color_list.get(color_dropdown, normalize_color(color_picker))}),
+                entry.assign({'color': config.color_list.get(color_dropdown, normalize_color(color_picker))}),
                 gr.Checkbox(
                     label="Save custom color",
                     interactive=True,

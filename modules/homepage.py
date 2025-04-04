@@ -1,6 +1,7 @@
+import importlib, os
+from pathlib import Path
 import gradio as gr
 from utils.utils import *
-from modules import add_tag, edit_color        
 
 with gr.Blocks() as home:
     # Global States
@@ -12,7 +13,7 @@ with gr.Blocks() as home:
     with gr.Row():
         file_input = gr.Textbox(
             scale=2,
-            value=default_yaml,
+            value=config.default_data,
             label='Path to .yaml',
             interactive=True
         )
@@ -40,7 +41,7 @@ with gr.Blocks() as home:
                 gr.Markdown("Groups")
                 with gr.Row():
                     choices = OrderedSet(group['name'] for group in groups)
-                    color = color_list['brown']
+                    color = config.color_list['brown']
                     for group in groups:
                         choices.add(group['name'])
                         if group['name'] == cur_group_name:
@@ -72,7 +73,7 @@ with gr.Blocks() as home:
                 gr.Markdown("Subgroups")
                 with gr.Row():
                     choices = OrderedSet()
-                    color = color_list['brown']
+                    color = config.color_list['brown']
                     for group in groups:
                         if group['name'] == cur_group_name:
                             for subgroup in group['groups']:
@@ -111,12 +112,7 @@ with gr.Blocks() as home:
                                     value=subgroup['tags'].items()
                                 )
     # # Tabs for function
-    # Currently implemented:
-    # * Add Tag
-    add_tag.create(groups)
-    # * WIP: Color Management
-    edit_color.create(groups)
-    
+    create_modules(groups)
 
     # # Footage
     # Manage the yaml file

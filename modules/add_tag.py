@@ -8,8 +8,8 @@ new_entry = MyDict({
     'text': '',
     'desc': '',
     'position': {},
-    'new_group_color': color_list['brown'],
-    'new_subgroup_color': color_list['brown']
+    'new_group_color': config.color_list['brown'],
+    'new_subgroup_color': config.color_list['brown']
 })
 
 @overload
@@ -149,7 +149,7 @@ def create(groups):
                     new_group_color = gr.Dropdown(
                         container=False,
                         interactive=True,
-                        choices=color_list,
+                        choices=config.color_list,
                         value='brown',
                         min_width=80,
                         scale=2
@@ -170,7 +170,7 @@ def create(groups):
                     new_subgroup_color = gr.Dropdown(
                         container=False,
                         interactive=True,
-                        choices=color_list,
+                        choices=config.color_list,
                         value='brown',
                         min_width=80,
                         scale=2
