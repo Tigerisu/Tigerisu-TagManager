@@ -4,6 +4,7 @@ import re
 import importlib.util
 from pathlib import Path
 from datetime import datetime
+import webcolors
 from typing import overload, Tuple, List
 import yaml
 import gradio as gr
@@ -12,14 +13,47 @@ import gradio as gr
 class Config():
     def __init__(self):
         with open("config.yaml", 'r', encoding='utf-8') as config_file:
-            config = yaml.safe_load(config_file)
-            self.default_data = config['default_data']
-            self.backup_dir = config['backup_dir']
-            self.module_dir = config['module_dir']
-            self.custom_dir = config['custom_dir']
-            self.module_priority = config['module_priority']
-            self.module_ignore = config['module_ignore']
-            self.color_list = config['color_list']
+            self.config = yaml.safe_load(config_file)
+        self.default_data = self.config['default_data']
+        self.backup_dir = self.config['backup_dir']
+        self.module_dir = self.config['module_dir']
+        self.module_priority = self.config['module_priority']
+        self.module_ignore = self.config['module_ignore']
+        self.color_preset = self.config['color_preset']
+
+    def save_config(self):
+        with open("config.yaml", 'w', encoding='utf-8') as file:
+            yaml.dump(self.config, file, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+    def set_default_data(self, default_data):
+        self.config['default_data'] = default_data
+        self.default_data = self.config['default_data']
+        self.save_config()
+
+    def set_backup_dir(self, backup_dir):
+        self.config['backup_dir'] = backup_dir
+        self.backup_dir = self.config['backup_dir']
+        self.save_config()
+
+    def set_module_dir(self, module_dir):
+        self.config['module_dir'] = module_dir
+        self.module_dir = self.config['module_dir']
+        self.save_config()
+
+    def set_module_priority(self, module_priority):
+        self.config['module_priority'] = module_priority
+        self.module_priority = self.config['module_priority']
+        self.save_config()
+
+    def set_module_ignore(self, module_ignore):
+        self.config['module_ignore'] = module_ignore
+        self.module_ignore = self.config['module_ignore']
+        self.save_config()
+
+    def set_color_preset(self, color_preset):
+        self.config['color_preset'] = dict(color_preset)
+        self.color_preset = self.config['color_preset']
+        self.save_config()
 
 config = Config()
 
@@ -113,6 +147,10 @@ class MyDict(dict):
         key, value = next(iter(item.items()))
         self[key] = value
         return self
+    
+    def delete(self, key):
+        del self[key]
+        return self
 
 # file I/O
 def read_yaml(filepath: str=config.default_data):
@@ -145,8 +183,42 @@ def backup_yaml(filepath: str=config.default_data, backup_dir: str=config.backup
 
 # take in a list or dict
 # return in yaml style string
-def data2yaml(entry: dict):
-    return yaml.dump(entry, default_flow_style=False, allow_unicode=True, sort_keys=False)
+def data2yaml(data: dict):
+    return yaml.dump(data, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+# Color
+# given a color in rgba string, get its name
+def rgba_to_name(rgba_str: str):
+    parts = normalize_color(rgba_str).strip("rgba() ").split(",")
+    r, g, b = map(lambda x: int(float(x)), parts[:3])
+    try:
+        return webcolors.rgb_to_name((r, g, b))
+    except ValueError:
+        return closest_color_name((r, g, b))
+
+def closest_color_name(rgb_tuple: Tuple[str]):
+    min_distance = float('inf')
+    closest_name = None
+    for name in webcolors.names():
+        hex_code = webcolors.name_to_hex(name)
+        cr, cg, cb = webcolors.hex_to_rgb(hex_code)
+        distance = (rgb_tuple[0] - cr) ** 2 + (rgb_tuple[1] - cg) ** 2 + (rgb_tuple[2] - cb) ** 2
+        if distance < min_distance:
+            min_distance = distance
+            closest_name = name
+    return closest_name
+
+# given a color name, get its rgba string
+def name_to_rgba(name: str):
+    try:
+        rgb = webcolors.name_to_rgb(name if name else 'white')
+        return f"rgba({rgb.red}, {rgb.green}, {rgb.blue}, 1)"
+    except ValueError:
+        return f"rgba(0, 0, 0, 1)"
+
+# get a list of color names with length ascending
+def list_color_names():
+    return sorted(webcolors.names(), key=len)
 
 # take in a string of color in hex or rgba format
 # return the color a rgba format with each channel rounded to int and A set to 1
@@ -169,20 +241,13 @@ def normalize_color(color: str) -> str:
 
 def get_modules():
     module_dir = Path(config.module_dir)
-    custom_dir = Path(config.custom_dir)
-    all_paths = list(module_dir.glob("*.py")) + list(custom_dir.glob("*.py"))
+    all_paths = list(module_dir.glob("*.py"))
 
     return [path.name for path in all_paths]
 
-@overload
-def create_modules(
-    data: gr.State
-) -> None: ...
-
-def create_modules(data):
+def create_modules(data: gr.State):
     module_dir = Path(config.module_dir)
-    custom_dir = Path(config.custom_dir)
-    all_paths = list(module_dir.glob("*.py")) + list(custom_dir.glob("*.py"))
+    all_paths = list(module_dir.glob("*.py"))
 
     priority_paths = [module_dir / file for file in config.module_priority]
     remaining_paths = [

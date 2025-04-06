@@ -1,7 +1,6 @@
-import importlib, os
-from pathlib import Path
 import gradio as gr
 from utils.utils import *
+from webui import settings
 
 with gr.Blocks() as home:
     # Global States
@@ -41,7 +40,7 @@ with gr.Blocks() as home:
                 gr.Markdown("Groups")
                 with gr.Row():
                     choices = OrderedSet(group['name'] for group in groups)
-                    color = config.color_list['brown']
+                    color = None
                     for group in groups:
                         choices.add(group['name'])
                         if group['name'] == cur_group_name:
@@ -73,7 +72,7 @@ with gr.Blocks() as home:
                 gr.Markdown("Subgroups")
                 with gr.Row():
                     choices = OrderedSet()
-                    color = config.color_list['brown']
+                    color = None
                     for group in groups:
                         if group['name'] == cur_group_name:
                             for subgroup in group['groups']:
@@ -111,16 +110,16 @@ with gr.Blocks() as home:
                                     container=False,
                                     value=subgroup['tags'].items()
                                 )
-    # # Tabs for function
-    create_modules(groups)
 
-    # # Footage
-    # Manage the yaml file
-    # ## UI
+
     with gr.Row():
         backup_button = gr.Button("🗄️ Backup")
         save_button = gr.Button("💾 Save", variant='primary')
 
-    # ## Event
     backup_button.click(backup_yaml, inputs=[file_input])
     save_button.click(write_yaml, inputs=[groups, file_input])
+
+    # # Tabs
+    create_modules(groups)
+
+    settings.create()

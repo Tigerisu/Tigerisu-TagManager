@@ -76,5 +76,6 @@ tzdata==2025.2
 urllib3==2.3.0
 uvicorn==0.34.0
 wcwidth==0.2.13
+webcolors==24.11.1
 websockets==15.0.1
 wheel==0.45.1

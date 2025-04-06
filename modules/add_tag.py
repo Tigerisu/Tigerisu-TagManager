@@ -8,8 +8,8 @@ new_entry = MyDict({
     'text': '',
     'desc': '',
     'position': {},
-    'new_group_color': config.color_list['brown'],
-    'new_subgroup_color': config.color_list['brown']
+    'new_group_color': "rgba(255, 255, 255, 1)",
+    'new_subgroup_color': "rgba(255, 255, 255, 1)"
 })
 
 @overload
@@ -20,7 +20,7 @@ def exec_entry(
     position_dict: dict,
     new_group_color: str,
     new_subgroup_color: str
-) -> dict: ...
+) -> list: ...
 
 def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_color):
     msg = Message(duration=5)
@@ -74,7 +74,7 @@ def exec_entry(groups, text, desc, position_dict, new_group_color, new_subgroup_
 def add_tag(
     groups: dict,
     entry: dict
-) -> Tuple[dict, str, str]: ...
+) -> Tuple[list, str, str]: ...
 
 def add_tag(groups, entry):
     text = entry['text']
@@ -103,7 +103,7 @@ def add_tag(groups, entry):
 def add_group(
     groups: dict,
     entry: dict
-) -> dict: ...
+) -> list: ...
 
 def add_group(groups, entry):
     position = entry['position']
@@ -149,8 +149,8 @@ def create(groups):
                     new_group_color = gr.Dropdown(
                         container=False,
                         interactive=True,
-                        choices=config.color_list,
-                        value='brown',
+                        choices=config.color_preset,
+                        value=None,
                         min_width=80,
                         scale=2
                     )
@@ -170,8 +170,8 @@ def create(groups):
                     new_subgroup_color = gr.Dropdown(
                         container=False,
                         interactive=True,
-                        choices=config.color_list,
-                        value='brown',
+                        choices=config.color_preset,
+                        value=None,
                         min_width=80,
                         scale=2
                     )
@@ -265,16 +265,18 @@ def create(groups):
                 outputs=[entry, group_selected_names]
             )
 
-        with gr.Accordion(label="Summary", open=False):
-            summary = gr.Textbox(
-                container=False,
-                value=data2yaml,
-                inputs=entry
-            )
+        # with gr.Accordion(label="Summary", open=False):
+        #     summary = gr.Textbox(
+        #         container=False,
+        #         value=data2yaml,
+        #         inputs=entry
+        #     )
         
         with gr.Row():
             add_group_button = gr.Button("🗂️ Add Group")
             add_tag_button = gr.Button("➕ Add Tag", variant='primary')
+        
+        gr.Markdown("<center>‼️ Remember to save your file. ‼️</center>")
 
         # ## Events
         text.input(

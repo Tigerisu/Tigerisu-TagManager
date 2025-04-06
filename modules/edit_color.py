@@ -5,7 +5,7 @@ from utils.utils import *
 # Manage color preset and colors for groups and subgroups
 # ## Logic
 new_entry = MyDict({
-    'color': config.color_list['brown'],
+    'color': "rgba(255, 255, 255, 1)",
     'position': {}
 })
 
@@ -16,8 +16,8 @@ def exec_entry(
     position_dict: dict,
     apply2groups: bool,
     apply2subgroups: bool,
-    apply2subgroups_all: bool
-) -> dict: ...
+    apply2subgroups_all: bool,
+) -> list: ...
 
 def exec_entry(groups, color, position_dict, apply2groups, apply2subgroups, apply2subgroups_all):
     msg = Message(duration=5)
@@ -47,15 +47,31 @@ def exec_entry(groups, color, position_dict, apply2groups, apply2subgroups, appl
     return groups
 
 @overload
+def save_custom_color(
+    color_name: str,
+    color: str
+): ...
+
+def save_custom_color(color_name, color):
+    config.color_preset[color_name] = color
+    config.save_config()
+    Message("Color saved.")()
+
+@overload
 def apply2groups(
     groups: dict,
     entry: dict,
-    apply2subgroups_all: bool
-) -> dict: ...
+    apply2subgroups_all: bool,
+    color_name: str,
+    save_custom: bool
+) -> list: ...
 
-def apply2groups(groups, entry, apply2subgroups_all):
+def apply2groups(groups, entry, apply2subgroups_all, color_name, save_custom):
     color = entry['color']
     position = entry['position']
+
+    if save_custom:
+        save_custom_color(color_name, color)
 
     if not position:
         msg = Message("Select groups.", 'warning')
@@ -69,19 +85,24 @@ def apply2groups(groups, entry, apply2subgroups_all):
 def apply2subgroups(
     groups: dict,
     entry: dict,
-    apply2groups: bool
-) -> dict: ...
+    apply2groups: bool,
+    color_name: str,
+    save_custom: bool
+) -> list: ...
 
-def apply2subgroups(groups, entry, apply2groups):
+def apply2subgroups(groups, entry, apply2groups, color_name, save_custom):
     color = entry['color']
     position = entry['position']
+
+    if save_custom:
+        save_custom_color(color_name, color)
 
     if not position:
         msg = Message("Select groups.", 'warning')
         msg()
         return groups
     
-    group = exec_entry(groups, color, position, apply2groups, True)
+    groups = exec_entry(groups, color, position, apply2groups, True, False)
     return groups
 
 @overload
@@ -164,11 +185,18 @@ def create(groups):
                         color_dropdown = gr.Dropdown(
                             container=False,
                             interactive=True,
-                            choices=list(config.color_list) + ['🎨CUSTOM'],
-                            value='brown'
+                            allow_custom_value=True,
+                            choices=list(config.color_preset),
+                            value=None
                         )
-                        save_custom = gr.Checkbox(visible=False)
-                        new_color_name = gr.Textbox(visible=False)
+
+                        save_custom = gr.Checkbox(
+                            label="Save Custom Color",
+                            interactive=True,
+                            value=lambda color_dropdown: not color_dropdown in config.color_preset,
+                            inputs=color_dropdown
+                        )
+                    
                     color_picker = gr.ColorPicker(
                         container=False,
                         min_width=240,
@@ -195,54 +223,42 @@ def create(groups):
                         label="Apply to all groups of selected subgroups."
                     )
 
-        with gr.Accordion(label="Summary", open=False):
-            summary = gr.Textbox(
-                container=False,
-                value=data2yaml,
-                inputs=entry
-            )
+        # with gr.Accordion(label="Summary", open=False):
+        #     summary = gr.Textbox(
+        #         container=False,
+        #         value=data2yaml,
+        #         inputs=entry
+        #     )
+
+        gr.Markdown("<center>‼️ Remember to save your file. ‼️</center>")
 
         # ## Events
-        color_dropdown.change(
-            lambda entry, color_dropdown, color_picker: (
-                entry.assign({'color': config.color_list.get(color_dropdown, normalize_color(color_picker))}),
-                gr.Checkbox(
-                    label="Save custom color",
-                    interactive=True,
-                    visible=(color_dropdown == '🎨CUSTOM'),
-                    value=True
-                )
+        color_dropdown.input(
+            lambda entry, color_dropdown: (
+                entry.assign({'color': config.color_preset[color_dropdown]})
+                if color_dropdown in config.color_preset else entry
             ),
-            inputs=[entry, color_dropdown, color_picker],
-            outputs=[entry, save_custom]
+            inputs=[entry, color_dropdown],
+            outputs=entry
         )
 
         color_picker.input(
             lambda entry, color_picker: (
                 entry.assign({'color': normalize_color(color_picker)}),
-                '🎨CUSTOM'
+                rgba_to_name(color_picker)
             ),
             inputs=[entry, color_picker],
             outputs=[entry, color_dropdown]
         )
 
-        save_custom.change(
-            lambda save_custom: gr.Textbox(
-                label="Name",
-                visible=save_custom,
-            ),
-            inputs=save_custom,
-            outputs=new_color_name
-        )
-
         apply_group.click(
             apply2groups,
-            inputs=[groups, entry, apply2subgroups_checkbox],
+            inputs=[groups, entry, apply2subgroups_checkbox, color_dropdown, save_custom],
             outputs=groups
         )
 
         apply_subgroup.click(
             apply2subgroups,
-            inputs=[groups, entry, apply2groups_checkbox],
+            inputs=[groups, entry, apply2groups_checkbox, color_dropdown, save_custom],
             outputs=groups
         )
