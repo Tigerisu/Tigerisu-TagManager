@@ -9,53 +9,66 @@ from typing import overload, Tuple, List
 import yaml
 import gradio as gr
 
-# init vaiables from config
-class Config():
-    def __init__(self):
-        with open("config.yaml", 'r', encoding='utf-8') as config_file:
-            self.config = yaml.safe_load(config_file)
-        self.default_data = self.config['default_data']
-        self.backup_dir = self.config['backup_dir']
-        self.module_dir = self.config['module_dir']
-        self.module_priority = self.config['module_priority']
-        self.module_ignore = self.config['module_ignore']
-        self.color_preset = self.config['color_preset']
+DEFAULT_CONFIG = {
+    "default_data": "data/zh_CN.yaml",
+    "backup_dir": "data/backup",
+    "module_dir": "modules",
+    "module_priority": [
+        "add_tag.py",
+        "edit_color.py"
+    ],
+    "module_ignore": [
+        "example.py"
+    ],
+    "color_preset": {
+        "mediumslateblue": "rgba(140, 82, 255, 1)",
+        "violet": "rgba(255, 132, 208, 1)",
+        "dodgerblue": "rgba(24, 158, 243, 1)",
+        "orange": "rgba(255, 169, 2, 1)",
+        "seagreen": "rgba(0, 163, 80, 1)",
+        "hotpink": "rgba(254, 49, 203, 1)"
+    }
+}
+
+class Config:
+    def __init__(self, path="config.yaml"):
+        self._path = Path(path)
+        self._example_path = self._path.with_suffix(".yaml.example")
+
+        # Always write the latest DEFAULT_CONFIG to the example file
+        self._write_config_file(self._example_path, DEFAULT_CONFIG)
+
+        # If actual config doesn't exist, create it from DEFAULT_CONFIG
+        if not self._path.exists():
+            self._write_config_file(self._path, DEFAULT_CONFIG)
+
+        with self._path.open("r", encoding="utf-8") as f:
+            self._config = yaml.safe_load(f) or {}
+
+    def _write_config_file(self, path, config):
+        with Path(path).open("w", encoding="utf-8") as f:
+            yaml.dump(config, f, allow_unicode=True, sort_keys=False)
 
     def save_config(self):
-        with open("config.yaml", 'w', encoding='utf-8') as file:
-            yaml.dump(self.config, file, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        self._write_config_file(self._path, self._config)
 
-    def set_default_data(self, default_data):
-        self.config['default_data'] = default_data
-        self.default_data = self.config['default_data']
-        self.save_config()
+    def __getattr__(self, name):
+        if name in self._config:
+            return self._config[name]
+        elif name in DEFAULT_CONFIG:
+            self.__setattr__(name, DEFAULT_CONFIG[name])
+            return self._config[name]
+        raise AttributeError(f"'Config' object has no attribute '{name}'")
 
-    def set_backup_dir(self, backup_dir):
-        self.config['backup_dir'] = backup_dir
-        self.backup_dir = self.config['backup_dir']
-        self.save_config()
-
-    def set_module_dir(self, module_dir):
-        self.config['module_dir'] = module_dir
-        self.module_dir = self.config['module_dir']
-        self.save_config()
-
-    def set_module_priority(self, module_priority):
-        self.config['module_priority'] = module_priority
-        self.module_priority = self.config['module_priority']
-        self.save_config()
-
-    def set_module_ignore(self, module_ignore):
-        self.config['module_ignore'] = module_ignore
-        self.module_ignore = self.config['module_ignore']
-        self.save_config()
-
-    def set_color_preset(self, color_preset):
-        self.config['color_preset'] = dict(color_preset)
-        self.color_preset = self.config['color_preset']
-        self.save_config()
+    def __setattr__(self, name, value):
+        if name.startswith("_"):
+            super().__setattr__(name, value)
+        else:
+            self._config[name] = value
+            self.save_config()
 
 config = Config()
+
 
 # Message
 # essentially a str which can be initialized with a level and duration

@@ -13,16 +13,16 @@ def apply_config(
 ): ...
 
 def apply_config(default_data, backup_dir, module_dir, module_priority):
-    config.set_default_data(default_data)
-    config.set_backup_dir(backup_dir)
-    config.set_module_dir(module_dir)
+    config.default_data = default_data
+    config.backup_dir = backup_dir
+    config.module_dir = module_dir
     all_modules = get_modules()
-    config.set_module_priority(module_priority)
+    config.module_priority = module_priority
     module_ignore = [
         module for module in all_modules
         if module not in module_priority
     ]
-    config.set_module_ignore(module_ignore)
+    config.module_ignore = module_ignore
     Message("Settings saved. Restart required.")()
 
 def reset_config():
@@ -34,7 +34,7 @@ def reset_config():
     )
 
 def apply_color(color_preset: dict):
-    config.set_color_preset(dict(color_preset))
+    config.color_preset = dict(color_preset)
     Message("Color preset saved.")()
 
 @overload
